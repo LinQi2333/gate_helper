@@ -23,3 +23,4 @@ node_modules/
 # 忽略某个特定文件
 user_*.json
 bond.json
+mysekai*.json
