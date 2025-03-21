@@ -106,6 +106,12 @@ class Utils:
         update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
         materials_needed.update({"更新时间": update_time})
         materials_needed.update({f"当前{self.get_unit_name(groupid)}等级": userdata["userMysekaiGates"][int(groupid/1000)-1]["mysekaiGateLevel"]})
+        if userdata["userMysekaiGates"][int(groupid/1000)-1]["mysekaiGateLevel"] == 40:
+            materials_needed.update({"当前团已满级": 40})
+            return materials_needed
+        elif level <= userdata["userMysekaiGates"][int(groupid/1000)-1]["mysekaiGateLevel"]:
+            materials_needed.update({"已达到目标等级": level})
+            return materials_needed
 
         data_to_translate = {}
 
@@ -148,13 +154,29 @@ class Utils:
 
         return translated_materials_needed
         
-    def get_unit(self, unit: str) -> int:
+    def get_unit(self, unit: str, user_id: str) -> int:
         ln = ["ln", "leo/need", "blue", "狮雨星绊", "ick", "saki", "hnm", "shiho"]
         mmj = ["mmj", "more more jump", "MORE MORE JUMP!", "green", "萌萌少女飞跃团", "mnr", "hrk", "airi", "szk"]
         vbs = ["vbs", "vivid bad squad", "Vivid BAD SQUAD", "red", "炫狂小队", "khn", "an", "akt", "toya"]
         ws = ["ws", "Wonderlands showtime", "yellow", "马戏团", "tks", "emu", "nene", "rui"]
         nigo = ["25", "nigo", "25h", "purple", "25时", "knd", "mfy", "ena", "mzk"]
 
+        if not unit:
+            json_path = self.base_path / "data" / f"user_{user_id}.json"
+            with open(json_path, "r", encoding = "utf-8") as f:
+                userdata = json.load(f)
+            gate_level_dict = {
+                "ln": userdata["userMysekaiGates"][0]["mysekaiGateLevel"],
+                "mmj": userdata["userMysekaiGates"][1]["mysekaiGateLevel"],
+                "vbs": userdata["userMysekaiGates"][2]["mysekaiGateLevel"],
+                "ws": userdata["userMysekaiGates"][3]["mysekaiGateLevel"],
+                "25": userdata["userMysekaiGates"][4]["mysekaiGateLevel"]
+            }
+            filtered_dict = {k: v for k, v in gate_level_dict.items() if v != 40}
+            if filtered_dict:
+                return gate_level_dict[max(filtered_dict, key = filtered_dict.get)]
+            else:
+                return -2
         if unit in ln:
             return 1000
         elif unit in mmj:

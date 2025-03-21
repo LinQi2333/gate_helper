@@ -26,9 +26,11 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
     if(user_data_status.code != 1):
         await gate_material.finish(user_data_status.message)
 
-    groupid = utils.get_unit(unit)
+    groupid = utils.get_unit(unit, user_id)
     if groupid == -1:
         await gate_material.finish("不存在的团体")
+    elif groupid == -2:
+        await gate_material.finish("你已经全部满级✨")
     if not level:
         level = 40
     elif int(level) < 0 or int(level) > 40:
@@ -41,7 +43,12 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
     
     messages = ""
     for material_needed, quantity in materials.items():
-        messages = messages + material_needed + ":" + str(quantity) + "\n"
+        if material_needed == "当前团已满级":
+            messages = messages + material_needed + "\n"
+        elif material_needed == "已达到目标等级":
+            messages = messages + material_needed + "\n"
+        else:
+            messages = messages + material_needed + ":" + str(quantity) + "\n"
     await gate_material.finish(messages)
 
 @update.handle()
