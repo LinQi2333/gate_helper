@@ -43,7 +43,7 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
     
     messages = ""
     for material_needed, quantity in materials.items():
-        if material_needed == "当前团已满级":
+        if material_needed == "当前团已满级✨":
             messages = messages + material_needed + "\n"
         elif material_needed == "已达到目标等级":
             messages = messages + material_needed + "\n"

@@ -174,7 +174,7 @@ class Utils:
             }
             filtered_dict = {k: v for k, v in gate_level_dict.items() if v != 40}
             if filtered_dict:
-                return gate_level_dict[max(filtered_dict, key = filtered_dict.get)]
+                unit = max(filtered_dict, key = filtered_dict.get)
             else:
                 return -2
         if unit in ln:
