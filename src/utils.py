@@ -13,7 +13,9 @@ class Utils:
         self.memorial_translate = self.base_path / "data" / "reference.json"
     
     def bond_user(self, user_id: str, uid: str) -> None:
-
+        if not self.bond_path.exists():
+            with open(self.bond_path, "w", encoding = "utf-8") as f:
+                json.dump([], f)
         with open(self.bond_path, "r", encoding = "utf-8") as f:
             data = json.load(f)
 
