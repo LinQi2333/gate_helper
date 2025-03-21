@@ -1,0 +1,25 @@
+# 忽略 Python 生成的文件
+__pycache__/
+*.pyc
+*.pyo
+*.log
+
+# 忽略环境文件
+.env
+*.db
+*.sqlite3
+
+# 忽略 IDE 相关文件
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 忽略 node_modules
+node_modules/
+
+# 忽略某个特定文件
+user_*.json
+bond.json
