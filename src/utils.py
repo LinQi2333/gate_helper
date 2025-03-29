@@ -165,18 +165,9 @@ class Utils:
             json_path = self.base_path / "data" / f"user_{user_id}.json"
             with open(json_path, "r", encoding = "utf-8") as f:
                 userdata = json.load(f)
-            gate_level_dict = {
-                "ln": userdata["userMysekaiGates"][0]["mysekaiGateLevel"],
-                "mmj": userdata["userMysekaiGates"][1]["mysekaiGateLevel"],
-                "vbs": userdata["userMysekaiGates"][2]["mysekaiGateLevel"],
-                "ws": userdata["userMysekaiGates"][3]["mysekaiGateLevel"],
-                "25": userdata["userMysekaiGates"][4]["mysekaiGateLevel"]
-            }
-            filtered_dict = {k: v for k, v in gate_level_dict.items() if v != 40}
-            if filtered_dict:
-                unit = max(filtered_dict, key = filtered_dict.get)
-            else:
-                return -2
+            for item in userdata["userMysekaiGates"]:
+                if item["isSettingAtHomeSite"]:
+                    return int(item["mysekaiGateId"] * 1000)
         if unit in ln:
             return 1000
         elif unit in mmj:
