@@ -3,6 +3,7 @@ import json
 import requests
 from .exception import error_status as s
 from datetime import datetime
+from PIL import Image, ImageDraw, ImageFont
 
 class Utils:
     def __init__(self):
@@ -192,3 +193,22 @@ class Utils:
             return "ws"
         elif unit == 5000:
             return "25"
+    
+    def generate_card_pic(self, user_id: str) -> str:
+        json_path = self.base_path / "data" / f"user_{user_id}.json"
+        with open(json_path, "r", encoding = "utf-8") as f:
+            userdata = json.load(f)
+        
+        image = Image.new("RGB", (1280, 720), (255, 255, 255))
+        draw = ImageDraw.Draw(image)
+        
+        font_path = self.base_path / "src" / "font" / "SOURCEHANSANSCN-REGULAR.OTF"
+        font = ImageFont.truetype(font_path, 40)
+
+        update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
+        test_text = f"更新时间: {update_time}"
+        draw.text((20, 20), test_text, fill=(0, 0, 0), font=font)
+
+        card_info_pic_path = self.base_path / "userdata" / f"card_info_{user_id}.png"
+        image.save(card_info_pic_path)
+        return str(card_info_pic_path)

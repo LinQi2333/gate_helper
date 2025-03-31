@@ -8,6 +8,7 @@ utils = Utils()
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
 gate_material = on_command("gate_material", aliases = {"升级材料"}, priority = 5)
 update = on_command("update", aliases = {"更新ms数据"}, priority = 5)
+card_info = on_command("card_info", aliases = {"个人图鉴"}, priority = 5)
 
 @bond.handle()
 async def bond_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
@@ -58,3 +59,15 @@ async def update_handle(bot: Bot, event: GroupMessageEvent):
         await update.finish("更新成功！")
     elif status.code == -1:
         await update.finish(status.message)
+    
+@card_info.handle()
+async def card_info_handle(bot: Bot, event: GroupMessageEvent):
+    user_id = str(event.user_id)
+
+    user_data_status = utils.get_user_data(user_id)
+    if(user_data_status.code!= 1):
+        await card_info.finish(user_data_status.message)
+
+    pic_path = utils.generate_card_pic(user_id)
+    msg = f"[CQ:image,file=file:///{pic_path}]"
+    await bot.send_group_msg(group_id = event.group_id, message = msg)
