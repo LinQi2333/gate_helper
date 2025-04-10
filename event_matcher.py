@@ -23,15 +23,16 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
     unit, _, level = args_in.partition(" ")
     user_id = str(event.user_id)
 
-    user_data_status = utils.get_user_data(user_id)
-    if(user_data_status.code != 1):
-        await gate_material.finish(user_data_status.message)
+    try:
+        utils.get_user_data(user_id)
+    except Exception as e:
+        await gate_material.finish(e.message)
 
-    groupid = utils.get_unit(unit, user_id)
-    if groupid == -1:
-        await gate_material.finish("不存在的团体")
-    elif groupid == -2:
-        await gate_material.finish("你已经全部满级✨")
+    try:
+        groupid = utils.get_unit(unit, user_id)
+    except Exception as e:
+        await gate_material.finish(e.message)
+
     if not level:
         level = 40
     elif int(level) < 0 or int(level) > 40:
@@ -54,19 +55,21 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
 
 @update.handle()
 async def update_handle(bot: Bot, event: GroupMessageEvent):
-    status = utils.data_update()
-    if status.code == 1:
+    try:
+        utils.data_update()
+    except Exception as e:
+        await update.finish(e.message)
+    else:
         await update.finish("更新成功！")
-    elif status.code == -1:
-        await update.finish(status.message)
     
 @card_info.handle()
 async def card_info_handle(bot: Bot, event: GroupMessageEvent):
     user_id = str(event.user_id)
 
-    user_data_status = utils.get_user_data(user_id)
-    if(user_data_status.code!= 1):
-        await card_info.finish(user_data_status.message)
+    try:
+        utils.get_user_data(user_id)
+    except Exception as e:
+        await card_info.finish(e.message)
 
     pic_path = utils.generate_card_pic(user_id)
     msg = f"[CQ:image,file=file:///{pic_path}]"

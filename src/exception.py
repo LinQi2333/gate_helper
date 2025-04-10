@@ -1,4 +1,14 @@
-class error_status:
-    def __init__(self, message, code):
+class FileDownloadError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
         self.message = message
-        self.code = code
+
+class UserError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+class NotFoundError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message

@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import requests
-from .exception import error_status as s
+from .exception import FileDownloadError, UserError, NotFoundError
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
@@ -34,7 +34,7 @@ class Utils:
         with open(self.bond_path, "w", encoding = "utf-8") as f:
             json.dump(data, f, indent = 4)
     
-    def get_user_data(self, user_id: str) -> s:
+    def get_user_data(self, user_id: str) -> None:
 
         with open(self.bond_path, "r", encoding = "utf-8") as f:
             data = json.load(f)
@@ -46,7 +46,7 @@ class Utils:
                 break
 
         if not found:
-            return s("用户未绑定", -1)
+            raise UserError("未绑定用户")
         
         json_path = self.base_path / "data" / f"user_{user_id}.json"
         url = f"api" # configure it if you need
@@ -56,11 +56,10 @@ class Utils:
             data = response.json()
             with open(json_path, "w", encoding = "utf-8") as f:
                 json.dump(data, f, indent = 4)
-            return s("用户信息下载成功", 1)
         else:
-            return s("用户信息下载失败", -2)
+            raise FileDownloadError("用户数据下载失败")
     
-    def get_gate_information(self) -> s:
+    def get_gate_information(self) -> None:
         url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiGateMaterialGroups.json"
 
         response = requests.get(url)
@@ -68,11 +67,10 @@ class Utils:
             data = response.json()
             with open(self.gate_material_path, "w", encoding = "utf-8") as f:
                 json.dump(data, f, indent = 4)
-            return s("升级材料下载成功", 1)
         else:
-            return s("升级材料下载失败", -2)
+            raise FileDownloadError("升级材料下载失败")
         
-    def get_material_map(self) -> s:
+    def get_material_map(self) -> None:
         url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiMaterials.json"
 
         response = requests.get(url)
@@ -80,19 +78,18 @@ class Utils:
             data = response.json()
             with open(self.material_path, "w", encoding = "utf-8") as f:
                 json.dump(data, f, indent = 4)
-            return s("材料映射下载成功", 1)
         else:
-            return s("材料映射下载失败", -2)
+            raise FileDownloadError("材料映射下载失败")
     
-    def data_update(self) -> s:
-        status1 = self.get_gate_information()
-        status2 = self.get_material_map()
-        if status1.code == 1 and status2.code == 1:
-            return s("数据更新成功", 1)
-        elif status1.code == -2:
-            return s(status1.message, -1)
-        elif status2.code == -2:
-            return s(status2.message, -1)
+    def data_update(self) -> None:
+        try:
+            self.get_gate_information()
+        except FileDownloadError:
+            raise
+        try:
+            self.get_material_map()
+        except FileDownloadError:
+            raise
     
     def get_materials_needed(self, groupid: int, level: int, user_id: str) -> dict:
         materials_needed = {"用户": user_id}
@@ -180,7 +177,7 @@ class Utils:
         elif unit in nigo:
             return 5000
         else:
-            return -1
+            raise NotFoundError("不存在的团体")
     
     def get_unit_name(self, unit: int) -> str:
         if unit == 1000:
