@@ -46,7 +46,7 @@ class Utils:
                 break
 
         if not found:
-            raise UserError("未绑定用户")
+            raise UserError("未绑定用户，使用指令[！绑定 uid]进行绑定")
         
         json_path = self.base_path / "data" / f"user_{user_id}.json"
         url = f"api" # configure it if you need
@@ -57,7 +57,10 @@ class Utils:
             with open(json_path, "w", encoding = "utf-8") as f:
                 json.dump(data, f, indent = 4)
         else:
-            raise FileDownloadError("用户数据下载失败")
+            if response.status_code == 404:
+                raise FileDownloadError("未找到用户数据，请确认你上传的是suite数据且勾选公开API选项")
+            else:
+                raise FileDownloadError("用户数据下载失败，请使用反馈功能反馈")
     
     def get_gate_information(self) -> None:
         url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiGateMaterialGroups.json"
@@ -68,7 +71,7 @@ class Utils:
             with open(self.gate_material_path, "w", encoding = "utf-8") as f:
                 json.dump(data, f, indent = 4)
         else:
-            raise FileDownloadError("升级材料下载失败")
+            raise FileDownloadError("升级材料下载失败，若多次重试仍然失败，请使用反馈功能反馈")
         
     def get_material_map(self) -> None:
         url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiMaterials.json"
@@ -79,7 +82,7 @@ class Utils:
             with open(self.material_path, "w", encoding = "utf-8") as f:
                 json.dump(data, f, indent = 4)
         else:
-            raise FileDownloadError("材料映射下载失败")
+            raise FileDownloadError("材料映射下载失败，若多次重试仍然失败，请使用反馈功能反馈")
     
     def data_update(self) -> None:
         try:
@@ -177,7 +180,7 @@ class Utils:
         elif unit in nigo:
             return 5000
         else:
-            raise NotFoundError("不存在的团体")
+            raise NotFoundError("不存在的团体或关联团体名称")
     
     def get_unit_name(self, unit: int) -> str:
         if unit == 1000:
