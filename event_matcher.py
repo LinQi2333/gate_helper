@@ -22,6 +22,7 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
     args_in = args.extract_plain_text()
     unit, _, level = args_in.partition(" ")
     user_id = str(event.user_id)
+    group_id = str(event.group_id)
 
     try:
         utils.get_user_data(user_id)
@@ -41,7 +42,9 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
         target_level = int(level)
     
     if utils.gate_material_path.exists() and utils.material_path.exists():
-        materials = utils.get_materials_needed(groupid, target_level, user_id)
+        user_info = await bot.get_group_member_info(group_id=group_id, user_id=int(user_id))
+        user_name = user_info.get("card") or user_info.get("nickname")
+        materials = utils.get_materials_needed(groupid, target_level, user_id, user_name)
     
     messages = ""
     for material_needed, quantity in materials.items():

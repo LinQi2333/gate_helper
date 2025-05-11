@@ -94,8 +94,8 @@ class Utils:
         except FileDownloadError:
             raise
     
-    def get_materials_needed(self, groupid: int, level: int, user_id: str) -> dict:
-        materials_needed = {"用户": user_id}
+    def get_materials_needed(self, groupid: int, level: int, user_id: str, user_name: str) -> dict:
+        materials_needed = {"用户": user_name + "(" + user_id + ")"}
 
         with open(self.gate_material_path, "r", encoding = "utf-8") as f:
             gate_material_map = json.load(f)
