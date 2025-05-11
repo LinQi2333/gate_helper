@@ -106,9 +106,10 @@ class Utils:
         
         update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
         now_time = int(datetime.now().timestamp())
-        if now_time - int(userdata["upload_time"]) > 86400:
-            raise FileDownloadError("数据已过期，请重新上传数据")
         materials_needed.update({"更新时间": update_time})
+        if now_time - int(userdata["upload_time"]) > 86400:
+            materials_needed.update({"数据过期": "请重新上传数据"})
+            return materials_needed
         materials_needed.update({f"当前{self.get_unit_name(groupid)}等级": userdata["userMysekaiGates"][int(groupid/1000)-1]["mysekaiGateLevel"]})
         if userdata["userMysekaiGates"][int(groupid/1000)-1]["mysekaiGateLevel"] == 40:
             materials_needed.update({"当前团已满级": 40})
