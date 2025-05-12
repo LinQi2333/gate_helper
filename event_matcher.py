@@ -72,7 +72,8 @@ async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message
     elif int(args_in) < 1:
         number = 10
         await bot.send_group_msg(group_id = event.group_id, message = "查询数量过小，采用默认查询数量")
-    number = int(args_in)
+    else:
+        number = int(args_in)
 
     try:
         utils.get_user_data(user_id)
