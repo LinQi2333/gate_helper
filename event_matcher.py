@@ -86,8 +86,13 @@ async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message
         blueprints = utils.get_blueprints_unobtained(number, user_id, user_name)
 
     messages = ""
-    for blueprint, name in blueprints.items():
-        messages = messages + str(blueprint) + ":" + str(name) + "\n"
+    dict_length = len(blueprints)
+    
+    for i, (blueprint, name) in enumerate(blueprints.items()):
+        if i == dict_length - 1:
+            messages = messages + str(blueprint) + str(name)
+        else:
+            messages = messages + str(blueprint) + ":" + str(name) + "\n"
     await blueprint_obt.finish(messages)
 
 @update.handle()
