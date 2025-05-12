@@ -11,6 +11,8 @@ class Utils:
         self.bond_path = self.base_path / "userdata" / "bond.json"
         self.gate_material_path = self.base_path / "data" / "mysekaiGateMaterialGroups.json"
         self.material_path = self.base_path / "data" / "mysekaiMaterials.json"
+        self.blueprints_path = self.base_path / "data" / "mysekaiBlueprints.json"
+        self.blueprints_map_path = self.base_path / "data" / "mysekaiFixtures.json"
         self.memorial_translate = self.base_path / "data" / "reference.json"
     
     def bond_user(self, user_id: str, uid: str) -> None:
@@ -49,9 +51,12 @@ class Utils:
             raise UserError("未绑定用户，使用指令[！绑定 uid]进行绑定")
         
         json_path = self.base_path / "data" / f"user_{user_id}.json"
+        ms_json_path = self.base_path / "data" / f'user_{user_id}_ms.json'
         url = f"api" # configure it if you need
+        ms_url = f"api" # configure it if you need
 
         response = requests.get(url)
+        response_ms = requests.get(ms_url)
         if response.status_code == 200:
             data = response.json()
             with open(json_path, "w", encoding = "utf-8") as f:
@@ -61,6 +66,15 @@ class Utils:
                 raise FileDownloadError("未找到用户数据，请确认你上传的是suite数据且勾选公开API选项")
             else:
                 raise FileDownloadError("用户数据下载失败，请使用反馈功能反馈")
+        if response_ms.status_code == 200:
+            data = response_ms.json()
+            with open(ms_json_path, "w", encoding = "utf-8") as f:
+                json.dump(data, f, indent = 4)
+        else:
+            if response_ms.status_code == 404:
+                raise FileDownloadError("未找到用户数据，请确认你上传的是mysekai数据且勾选公开API选项")
+            else:
+                raise FileDownloadError("用户ms数据下载失败，请使用反馈功能反馈")
     
     def get_gate_information(self) -> None:
         url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiGateMaterialGroups.json"
@@ -84,6 +98,28 @@ class Utils:
         else:
             raise FileDownloadError("材料映射下载失败，若多次重试仍然失败，请使用反馈功能反馈")
     
+    def get_blueprints_infomation(self) -> None:
+        url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiBlueprints.json"
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            with open(self.blueprints_path, "w", encoding = "utf-8") as f:
+                json.dump(data, f, indent = 4)
+        else:
+            raise FileDownloadError("蓝图信息下载失败，若多次重试仍然失败，请使用反馈功能反馈")
+
+    def get_blueprints_map(self) -> None:
+        url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiFixtures.json"
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            with open(self.blueprints_map_path, "w", encoding = "utf-8") as f:
+                json.dump(data, f, indent = 4)
+        else:
+            raise FileDownloadError("蓝图映射下载失败，若多次重试仍然失败，请使用反馈功能反馈")
+    
     def data_update(self) -> None:
         try:
             self.get_gate_information()
@@ -93,7 +129,50 @@ class Utils:
             self.get_material_map()
         except FileDownloadError:
             raise
+        try:
+            self.get_blueprints_infomation()
+        except FileDownloadError:
+            raise
+        try:
+            self.get_blueprints_map()
+        except FileDownloadError:
+            raise
     
+    def get_blurprints_unobtained(self, number: int, user_id: str, user_name: str) -> dict:
+        blueprints_unobtained = {"用户": user_name + "(" + user_id + ")"}
+
+        with open(self.blueprints_path, "r", encoding = "utf-8") as f:
+            blueprints_map = json.load(f) #蓝图字典
+
+        with open(self.blueprints_map_path, "r", encoding = "utf-8") as f:
+            blueprints_fixtures = json.load(f) #家具字典
+
+        ms_json_path = self.base_path / "data" / f'user_{user_id}_ms.json'
+        with open(ms_json_path, "r", encoding = "utf-8") as f:
+            userdata_ms = json.load(f)
+
+        update_time = datetime.fromtimestamp(int(userdata_ms["upload_time"]))
+        now_time = int(datetime.now().timestamp())
+        blueprints_unobtained.update({"更新时间": update_time})
+        if now_time - int(userdata_ms["upload_time"]) > 86400:
+            blueprints_unobtained.update({"数据过期": "请重新上传数据"})
+            return blueprints_unobtained
+        blueprints_unobtained.update({"蓝图数量": str(len(userdata_ms["updatedResources"]["userMysekaiBlueprints"])) + '/' + str(len(blueprints_map))})
+
+        if len(userdata_ms["updatedResources"]["userMysekaiBlueprints"]) == len(blueprints_map):
+            blueprints_unobtained.update({"蓝图已全部获得": len(blueprints_map)})
+            return blueprints_unobtained
+        else:
+            count = number
+            for item in userdata_ms["updatedResources"]["userMysekaiBlueprints"]:
+                if item["mysekaiBlueprintId"] not in blueprints_map and count > 0:
+                    blueprints_unobtained.update({item["mysekaiBlueprintId"]: next((fixture['name'] for fixture in blueprints_fixtures if fixture['id'] == item["mysekaiBlueprintId"]), "Name not found")})
+                    count -= 1
+                if count == 0:
+                    blueprints_unobtained.update({"由于长度限制，显示未获取的前": f"{number}项"})
+                    break
+            return blueprints_unobtained
+
     def get_materials_needed(self, groupid: int, level: int, user_id: str, user_name: str) -> dict:
         materials_needed = {"用户": user_name + "(" + user_id + ")"}
 

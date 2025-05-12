@@ -6,7 +6,8 @@ from src.utils import Utils
 utils = Utils()
 
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
-gate_material = on_command("gate_material", aliases = {"升级材料"}, priority = 5)
+gate_material = on_command("gate_material", aliases = {"升级材料", "msg"}, priority = 5)
+blueprint_obt = on_command("mysekai_blueprint", aliases = {"蓝图获取情况", "msbp"}, priority = 5)
 update = on_command("update", aliases = {"更新ms数据"}, priority = 5)
 card_info = on_command("card_info", aliases = {"个人图鉴"}, priority = 5)
 
@@ -55,6 +56,38 @@ async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message
         else:
             messages = messages + material_needed + ":" + str(quantity) + "\n"
     await gate_material.finish(messages)
+
+@blueprint_obt.handle()
+async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
+    args_in = args.extract_plain_text()
+
+    user_id = str(event.user_id)
+    group_id = str(event.group_id)
+
+    if not args_in:
+        number = 10
+    elif int(args_in) >20:
+        number = 20
+        await bot.send_group_msg(group_id = event.group_id, message = "显示数量过大，已限制为20")
+    elif int(args_in) < 1:
+        number = 10
+        await bot.send_group_msg(group_id = event.group_id, message = "查询数量过小，采用默认查询数量")
+    number = int(args_in)
+
+    try:
+        utils.get_user_data(user_id)
+    except Exception as e:
+        await blueprint_obt.finish(e.message)
+
+    if utils.blueprints_path.exists() and utils.blueprints_map_path.exists():
+        user_info = await bot.get_group_member_info(group_id=group_id, user_id=int(user_id))
+        user_name = user_info.get("card") or user_info.get("nickname")
+        blueprints = utils.get_blueprints_unobtained(number, user_id, user_name)
+
+    messages = ""
+    for blueprint, name in blueprints.items():
+        messages = messages + str(blueprint) + ":" + str(name) + "\n"
+    await blueprint_obt.finish(messages)
 
 @update.handle()
 async def update_handle(bot: Bot, event: GroupMessageEvent):
