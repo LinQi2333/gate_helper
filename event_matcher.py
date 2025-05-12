@@ -76,7 +76,7 @@ async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message
         number = int(args_in)
 
     try:
-        utils.get_user_data(user_id)
+        utils.get_user_ms_data(user_id)
     except Exception as e:
         await blueprint_obt.finish(e.message)
 

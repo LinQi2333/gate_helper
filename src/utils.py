@@ -37,7 +37,6 @@ class Utils:
             json.dump(data, f, indent = 4)
     
     def get_user_data(self, user_id: str) -> None:
-
         with open(self.bond_path, "r", encoding = "utf-8") as f:
             data = json.load(f)
         found = False
@@ -51,12 +50,9 @@ class Utils:
             raise UserError("未绑定用户，使用指令[！绑定 uid]进行绑定")
         
         json_path = self.base_path / "data" / f"user_{user_id}.json"
-        ms_json_path = self.base_path / "data" / f'user_{user_id}_ms.json'
         url = f"api" # configure it if you need
-        ms_url = f"api" # configure it if you need
 
         response = requests.get(url)
-        response_ms = requests.get(ms_url)
         if response.status_code == 200:
             data = response.json()
             with open(json_path, "w", encoding = "utf-8") as f:
@@ -66,6 +62,24 @@ class Utils:
                 raise FileDownloadError("未找到用户数据，请确认你上传的是suite数据且勾选公开API选项")
             else:
                 raise FileDownloadError("用户数据下载失败，请使用反馈功能反馈")
+            
+    def get_user_ms_data(self, user_id: str) -> None:
+        with open(self.bond_path, "r", encoding = "utf-8") as f:
+            data = json.load(f)
+        found = False
+        for item in data:
+            if user_id in item:
+                uid = item[user_id]
+                found = True
+                break
+
+        if not found:
+            raise UserError("未绑定用户，使用指令[！绑定 uid]进行绑定")
+        
+        ms_json_path = self.base_path / "data" / f'user_{user_id}_ms.json'
+        ms_url = f"api" # configure it if you need
+
+        response_ms = requests.get(ms_url)
         if response_ms.status_code == 200:
             data = response_ms.json()
             with open(ms_json_path, "w", encoding = "utf-8") as f:
