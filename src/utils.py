@@ -167,7 +167,7 @@ class Utils:
             self.get_weather_map()
         except FileDownloadError:
             raise
-        
+
     @staticmethod
     def classify_day(timestamp: int) -> str:
         dt = datetime.fromtimestamp(timestamp)
@@ -196,7 +196,7 @@ class Utils:
         weather_dict = {}
         weather_dict.update({"天气预报": ""})
         for item in userdata_ms["mysekaiPhenomenaSchedules"]:
-            t = self.classify_day(int(item["scheduleDate"]))
+            t = self.classify_day(int(int(item["scheduleDate"]) / 1000 + (int(item["mysekaiRefreshTimePeriodId"]) - 1) * 43200))
             weather_dict.update({f"{t}": next(weather["name"] for weather in weather_map if weather["id"] == item["mysekaiPhenomenaId"])})
         
         return weather_dict
