@@ -107,7 +107,9 @@ async def ms_info_handle(bot: Bot, event: GroupMessageEvent):
         await ms_info.finish(e.message)
     
     if utils.weather_path.exists():
-        mysekai_info = utils.get_ms_info(user_id, group_id)
+        user_info = await bot.get_group_member_info(group_id=group_id, user_id=int(user_id))
+        user_name = user_info.get("card") or user_info.get("nickname")
+        mysekai_info = utils.get_ms_info(user_id, user_name)
     
     messages = ""
     for key, value in mysekai_info.items():
