@@ -8,6 +8,7 @@ utils = Utils()
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
 gate_material = on_command("gate_material", aliases = {"升级材料", "msg"}, priority = 5)
 blueprint_obt = on_command("mysekai_blueprint", aliases = {"蓝图获取情况", "msbp"}, priority = 5)
+ms_info = on_command("ms_info", aliases = {"ms信息", "msi"}, priority = 5)
 update = on_command("update", aliases = {"更新ms数据"}, priority = 5)
 card_info = on_command("card_info", aliases = {"个人图鉴"}, priority = 5)
 
@@ -94,6 +95,24 @@ async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message
         else:
             messages = messages + str(blueprint) + ":" + str(name) + "\n"
     await blueprint_obt.finish(messages)
+
+@ms_info.handle()
+async def ms_info_handle(bot: Bot, event: GroupMessageEvent):
+    user_id = str(event.user_id)
+    group_id = str(event.group_id)
+
+    try:
+        utils.get_user_ms_data(user_id)
+    except Exception as e:
+        await ms_info.finish(e.message)
+    
+    if utils.weather_path.exists():
+        mysekai_info = utils.get_ms_info(user_id, group_id)
+    
+    messages = ""
+    for key, value in mysekai_info.items():
+        messages = messages + str(key) + ":" + str(value) + "\n"
+    await ms_info.finish(messages)
 
 @update.handle()
 async def update_handle(bot: Bot, event: GroupMessageEvent):

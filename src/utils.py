@@ -13,6 +13,7 @@ class Utils:
         self.material_path = self.base_path / "data" / "mysekaiMaterials.json"
         self.blueprints_path = self.base_path / "data" / "mysekaiBlueprints.json"
         self.blueprints_map_path = self.base_path / "data" / "mysekaiFixtures.json"
+        self.weather_path = self.base_path / "data" / "mysekaiPhenomenas.json"
         self.memorial_translate = self.base_path / "data" / "reference.json"
     
     def bond_user(self, user_id: str, uid: str) -> None:
@@ -134,6 +135,17 @@ class Utils:
         else:
             raise FileDownloadError("蓝图映射下载失败，若多次重试仍然失败，请使用反馈功能反馈")
     
+    def get_weather_map(self) -> None:
+        url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiPhenomenas.json"
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            with open(self.weather_path, "w", encoding = "utf-8") as f:
+                json.dump(data, f, indent = 4)
+        else:
+            raise FileDownloadError("天气映射下载失败，若多次重试仍然失败，请使用反馈功能反馈")
+    
     def data_update(self) -> None:
         try:
             self.get_gate_information()
@@ -152,6 +164,51 @@ class Utils:
         except FileDownloadError:
             raise
     
+    def classify_day(timestamp: int) -> str:
+        dt = datetime.fromtimestamp(timestamp)
+        date = dt.date()
+        time_str = dt.strftime("%H:%M")
+        today = datetime.today().date()
+        delta = (date - today).days
+
+        if delta == -1:
+            return f"昨天{time_str}"
+        elif delta == 0:
+            return f"今天{time_str}"
+        elif delta == 1:
+            return f"明天{time_str}"
+        else:
+            return date.strftime("%Y-%m-%d %H:%M")
+    
+    def get_mysekai_weather(self, user_id: str) -> dict:
+        ms_json_path = self.base_path / "data" / f'user_{user_id}_ms.json'
+        with open(ms_json_path, "r", encoding = "utf-8") as f:
+            userdata_ms = json.load(f)
+        
+        with open(self.weather_path, "r", encoding = "utf-8") as f:
+            weather_map = json.load(f)
+        
+        weather_dict = {}
+        weather_dict.update({"天气预报": ""})
+        for item in userdata_ms["mysekaiPhenomenaSchedules"]:
+            t = self.classify_day(int(item["scheduleDate"]))
+            weather_dict.update({f"{t}": next(weather["name"] for weather in weather_map if weather["id"] == item["mysekaiPhenomenaId"])})
+        
+        return weather_dict
+    
+    def get_ms_info(self, user_id: str, user_name: str) -> dict:
+        ms_info = {"用户": user_name + "(" + user_id + ")"}
+        ms_json_path = self.base_path / "data" / f'user_{user_id}_ms.json'
+        with open(ms_json_path, "r", encoding = "utf-8") as f:
+            userdata_ms = json.load(f)
+
+        update_time = datetime.fromtimestamp(int(userdata_ms["upload_time"]))
+        ms_info.update({"更新时间": update_time})
+
+        ms_info.update(self.get_mysekai_weather(user_id))
+
+        return ms_info
+
     def get_blurprints_unobtained(self, number: int, user_id: str, user_name: str) -> dict:
         blueprints_unobtained = {"用户": user_name + "(" + user_id + ")"}
 
@@ -178,13 +235,12 @@ class Utils:
             return blueprints_unobtained
         else:
             count = number
-            for item in userdata_ms["updatedResources"]["userMysekaiBlueprints"]:
-                if item["mysekaiBlueprintId"] not in blueprints_map and count > 0:
-                    blueprints_unobtained.update({item["mysekaiBlueprintId"]: next((fixture['name'] for fixture in blueprints_fixtures if fixture['id'] == item["mysekaiBlueprintId"]), "Name not found")})
-                    count -= 1
-                if count == 0:
-                    blueprints_unobtained.update({"由于长度限制，显示未获取的前": f"{number}项"})
-                    break
+            obtained_ids = {mi["mysekaiBlueprintId"] for mi in userdata_ms["updatedResources"]["userMysekaiBlueprints"]}
+            miss_ids = [bp["id"] for bp in blueprints_map if bp["id"] not in obtained_ids]
+            for i in miss_ids[:count]:
+                blueprints_unobtained.update({i: next((fixture['name'] for fixture in blueprints_fixtures if fixture['id'] == i), "Name not found")})
+            
+            blueprints_unobtained.update({f"由于长度限制，显示未获取的前{number}项": ""})
             return blueprints_unobtained
 
     def get_materials_needed(self, groupid: int, level: int, user_id: str, user_name: str) -> dict:
@@ -229,7 +285,7 @@ class Utils:
 
         materials_needed.update(self.data_translate(data_to_translate))
         return materials_needed
-        
+    
     def data_translate(self, data: dict) -> dict:
         with open(self.material_path, "r", encoding = "utf-8") as f:
             material_map = json.load(f)
