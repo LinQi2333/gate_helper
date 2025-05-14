@@ -167,7 +167,8 @@ class Utils:
             self.get_weather_map()
         except FileDownloadError:
             raise
-    
+        
+    @staticmethod
     def classify_day(timestamp: int) -> str:
         dt = datetime.fromtimestamp(timestamp)
         date = dt.date()
