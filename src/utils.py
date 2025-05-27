@@ -9,10 +9,15 @@ class Utils:
     def __init__(self):
         self.base_path = Path(__file__).parent.parent
         self.bond_path = self.base_path / "userdata" / "bond.json"
+
         self.gate_material_path = self.base_path / "data" / "mysekaiGateMaterialGroups.json"
         self.material_path = self.base_path / "data" / "mysekaiMaterials.json"
+
         self.blueprints_path = self.base_path / "data" / "mysekaiBlueprints.json"
         self.blueprints_map_path = self.base_path / "data" / "mysekaiFixtures.json"
+
+        self.harvest_path = self.base_path / "data" / "mysekaiSiteHarvestFixtures.json"
+
         self.weather_path = self.base_path / "data" / "mysekaiPhenomenas.json"
         self.memorial_translate = self.base_path / "data" / "reference.json"
     
@@ -146,6 +151,17 @@ class Utils:
         else:
             raise FileDownloadError("天气映射下载失败，若多次重试仍然失败，请使用反馈功能反馈")
     
+    def get_harvest_info(self) -> None:
+        url = f"https://raw.githubusercontent.com/Team-Haruki/haruki-sekai-master/main/master/mysekaiSiteHarvestFixtures.json"
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            with open(self.harvest_path, "w", encoding = "utf-8") as f:
+                json.dump(data, f, indent = 4)
+        else:
+            raise FileDownloadError("地图材料信息下载失败，若多次重试仍然失败，请使用反馈功能反馈")
+    
     def data_update(self) -> None:
         try:
             self.get_gate_information()
@@ -165,6 +181,10 @@ class Utils:
             raise
         try:
             self.get_weather_map()
+        except FileDownloadError:
+            raise
+        try:
+            self.get_harvest_info()
         except FileDownloadError:
             raise
 
