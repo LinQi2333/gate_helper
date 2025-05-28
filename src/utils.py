@@ -332,7 +332,51 @@ class Utils:
                     break
 
         return translated_materials_needed
+    
+    def get_harvest_info(self, user_id: str, user_name: str) -> dict:
+        harvest_info = {"用户": user_name + "(" + user_id + ")"}
+
+        json_path = self.base_path / "data" / f"user_{user_id}.json"
+        with open(json_path, "r", encoding = "utf-8") as f:
+            userdata = json.load(f)
         
+        with open(self.harvest_path, "r", encoding = "utf-8") as f:
+            harvest_map = json.load(f)
+        
+        with open(self.material_path, "r", encoding = "utf-8") as f:
+            material_map = json.load(f)
+        
+        update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
+        now_time = int(datetime.now().timestamp())
+        harvest_info.update({"更新时间": update_time})
+        if now_time - int(userdata["upload_time"]) > 86400:
+            harvest_info.update({"数据过期": "请重新上传数据"})
+            return harvest_info
+        
+        sub_ids = userdata[user_id]
+
+        for item in harvest_map["updatedResources"]["userMysekaiHarvestMaps"]:
+            map_id = item["mysekaiSiteId"]
+            harvest_info.update({f"地图{map_id}": ""})
+            material_dict = {}
+            for i in sub_ids:
+                material_dict.update({i: 0})
+            for fixture in item["userMysekaiSiteHarvestResourceDrops"]:
+                if fixture["resourceId"] in sub_ids:
+                    material_dict[fixture["resourceId"]] += fixture["quantity"]
+
+            flag = False
+            for k, v in material_dict.items():
+                for item in material_map:
+                    if k == item["id"] and (k < 35 or k > 60):
+                        if v != 0:
+                            harvest_info.update({item["name"]: v})
+                            flag = True
+            if not flag:
+                harvest_info.update({f"地图{map_id}": "没有你想要的材料"})
+
+        return harvest_info
+
     def get_unit(self, unit: str, user_id: str) -> int:
         ln = ["ln", "leo/need", "blue", "狮雨星绊", "ick", "saki", "hnm", "shiho"]
         mmj = ["mmj", "more more jump", "MORE MORE JUMP!", "green", "萌萌少女飞跃团", "mnr", "hrk", "airi", "szk"]
