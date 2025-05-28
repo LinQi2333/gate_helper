@@ -102,7 +102,7 @@ async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message
 async def sub_bond_handle(bot: Bot, event: GroupMessageEvent):
     messages = "请发送你需要订阅的材料id，以空格分割\n材料id列表如下图\n"
     messages = messages + "[CQ:image,file=file:///home/ubuntu/bot/rin/rin/plugins/gate_helper/userdata/material_id.png]"
-    await sub_material.send_group_msg(group_id = event.group_id, message = messages)
+    await bot.send_group_msg(group_id = event.group_id, message = messages)
 
 @sub_bond.got("subs")
 async def sub_bond_got_handle(bot: Bot, event: GroupMessageEvent, subs: str = ArgPlainText("subs")):
@@ -110,6 +110,7 @@ async def sub_bond_got_handle(bot: Bot, event: GroupMessageEvent, subs: str = Ar
 
     sub_list = list(map(int, subs.split()))
     utils.bond_sub(user_id, sub_list)
+    await sub_bond.finish("订阅成功！")
 
 @sub_material.handle()
 async def sub_material_handle(bot: Bot, event: GroupMessageEvent):

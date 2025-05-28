@@ -21,7 +21,7 @@ class Utils:
         self.weather_path = self.base_path / "data" / "mysekaiPhenomenas.json"
         self.memorial_translate = self.base_path / "data" / "reference.json"
 
-        self.sub_path = self.base_path / "data" / "usersubs.json"
+        self.sub_path = self.base_path / "userdata" / "usersubs.json"
     
     def bond_user(self, user_id: str, uid: str) -> None:
         if not self.bond_path.exists():
@@ -358,15 +358,15 @@ class Utils:
     def get_harvest_info(self, user_id: str, user_name: str) -> dict:
         harvest_info = {"用户": user_name + "(" + user_id + ")"}
 
-        json_path = self.base_path / "data" / f"user_{user_id}.json"
+        json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
         with open(json_path, "r", encoding = "utf-8") as f:
             userdata = json.load(f)
         
         with open(self.sub_path, "r", encoding = "utf-8") as f:
             subdata = json.load(f)
 
-        with open(self.harvest_path, "r", encoding = "utf-8") as f:
-            harvest_map = json.load(f)
+        # with open(self.harvest_path, "r", encoding = "utf-8") as f:
+        #     harvest_map = json.load(f)
         
         with open(self.material_path, "r", encoding = "utf-8") as f:
             material_map = json.load(f)
@@ -378,7 +378,9 @@ class Utils:
             harvest_info.update({"数据过期": "请重新上传数据"})
             return harvest_info
         
-        sub_ids = subdata[user_id]
+        for item in subdata:
+            if user_id in item:
+                sub_ids = item[user_id]
 
         for item in userdata["updatedResources"]["userMysekaiHarvestMaps"]:
             map_id = item["mysekaiSiteId"]
