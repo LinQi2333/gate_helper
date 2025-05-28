@@ -362,6 +362,9 @@ class Utils:
         with open(json_path, "r", encoding = "utf-8") as f:
             userdata = json.load(f)
         
+        with open(self.sub_path, "r", encoding = "utf-8") as f:
+            subdata = json.load(f)
+
         with open(self.harvest_path, "r", encoding = "utf-8") as f:
             harvest_map = json.load(f)
         
@@ -375,9 +378,9 @@ class Utils:
             harvest_info.update({"数据过期": "请重新上传数据"})
             return harvest_info
         
-        sub_ids = userdata[user_id]
+        sub_ids = subdata[user_id]
 
-        for item in harvest_map["updatedResources"]["userMysekaiHarvestMaps"]:
+        for item in userdata["updatedResources"]["userMysekaiHarvestMaps"]:
             map_id = item["mysekaiSiteId"]
             harvest_info.update({f"地图{map_id}": ""})
             material_dict = {}
