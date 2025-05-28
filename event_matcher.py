@@ -118,17 +118,22 @@ async def sub_material_handle(bot: Bot, event: GroupMessageEvent):
     group_id = str(event.group_id)
 
     try:
-        utils.get_user_data(user_id)
+        utils.get_user_ms_data(user_id)
     except Exception as e:
         await sub_material.finish(e.message)
-    
+    try:
+        utils.get_user_sub(user_id)
+    except Exception as e:
+        await sub_material.finish(e.message)
+            
     user_info = await bot.get_group_member_info(group_id=group_id, user_id=int(user_id))
     user_name = user_info.get("card") or user_info.get("nickname")
     harvest = utils.get_harvest_info(user_id, user_name)
 
     messages = ""
-    for k, v in harvest.items():
-        messages = messages + str(k) + ":" + str(v) + "\n"
+    for item in harvest:
+        for k, v in item.items():
+            messages = messages + str(k) + ":" + str(v) + "\n"
     await sub_material.finish(messages)
 
 @ms_info.handle()

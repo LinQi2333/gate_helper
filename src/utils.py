@@ -64,6 +64,18 @@ class Utils:
         with open(self.sub_path, "w", encoding = "utf-8") as f:
             json.dump(data, f, indent = 4)
     
+    def get_user_sub(self, user_id: str) -> None:
+        with open(self.sub_path, "r", encoding = "utf-8") as f:
+            data = json.load(f)
+        
+        found = False
+        for item in data:
+            if user_id in item:
+                found = True
+                break
+        if not found:
+            raise UserError("未找到用户订阅信息，请使用指令[！订阅]进行订阅")
+    
     def get_user_data(self, user_id: str) -> None:
         with open(self.bond_path, "r", encoding = "utf-8") as f:
             data = json.load(f)
@@ -355,7 +367,8 @@ class Utils:
 
         return translated_materials_needed
     
-    def get_harvest_info(self, user_id: str, user_name: str) -> dict:
+    def get_harvest_info(self, user_id: str, user_name: str) -> list:
+        result = []
         harvest_info = {"用户": user_name + "(" + user_id + ")"}
 
         json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
@@ -374,17 +387,30 @@ class Utils:
         update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
         now_time = int(datetime.now().timestamp())
         harvest_info.update({"更新时间": update_time})
+        
         if now_time - int(userdata["upload_time"]) > 86400:
             harvest_info.update({"数据过期": "请重新上传数据"})
-            return harvest_info
+            result.append(harvest_info)
+            return result
+        
+        result.append(harvest_info)
         
         for item in subdata:
             if user_id in item:
                 sub_ids = item[user_id]
 
         for item in userdata["updatedResources"]["userMysekaiHarvestMaps"]:
+            material_info = {}
             map_id = item["mysekaiSiteId"]
-            harvest_info.update({f"地图{map_id}": ""})
+            if map_id == 5:
+                map_name = "さいしょの原っぱ"
+            elif map_id == 6:
+                map_name = "願いの砂浜"
+            elif map_id == 7:
+                map_name = "彩りの花畑"
+            elif map_id == 8:
+                map_name = "忘れ去られた場所"
+            material_info.update({f"图{map_id - 4}：{map_name}": ""})
             material_dict = {}
             for i in sub_ids:
                 material_dict.update({i: 0})
@@ -397,12 +423,13 @@ class Utils:
                 for item in material_map:
                     if k == item["id"] and (k < 35 or k > 60):
                         if v != 0:
-                            harvest_info.update({item["name"]: v})
+                            material_info.update({item["name"]: v})
                             flag = True
             if not flag:
-                harvest_info.update({f"地图{map_id}": "没有你想要的材料"})
+                material_info.update({f"图{map_id - 4}：{map_name}": "没有你想要的材料"})
+            result.append(material_info)
 
-        return harvest_info
+        return result
 
     def get_unit(self, unit: str, user_id: str) -> int:
         ln = ["ln", "leo/need", "blue", "狮雨星绊", "ick", "saki", "hnm", "shiho"]
