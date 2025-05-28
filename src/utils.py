@@ -20,6 +20,8 @@ class Utils:
 
         self.weather_path = self.base_path / "data" / "mysekaiPhenomenas.json"
         self.memorial_translate = self.base_path / "data" / "reference.json"
+
+        self.sub_path = self.base_path / "data" / "usersubs.json"
     
     def bond_user(self, user_id: str, uid: str) -> None:
         if not self.bond_path.exists():
@@ -40,6 +42,26 @@ class Utils:
             data.append(new_record)
 
         with open(self.bond_path, "w", encoding = "utf-8") as f:
+            json.dump(data, f, indent = 4)
+    
+    def bond_sub(self, user_id: str, sub_id: list) -> None:
+        if not self.sub_path.exists():
+            with open(self.sub_path, "w", encoding = "utf-8") as f:
+                json.dump([], f)
+        with open(self.sub_path, "r", encoding = "utf-8") as f:
+            data = json.load(f)
+        
+        updated = False
+        for item in data:
+            if user_id in item:
+                item[user_id] = sub_id
+                updated = True
+                break
+        if not updated:
+            new_record = {user_id : sub_id}
+            data.append(new_record)
+        
+        with open(self.sub_path, "w", encoding = "utf-8") as f:
             json.dump(data, f, indent = 4)
     
     def get_user_data(self, user_id: str) -> None:
