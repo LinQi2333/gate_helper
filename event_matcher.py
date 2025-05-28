@@ -1,6 +1,6 @@
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, Message, GroupMessageEvent
-from nonebot.params import CommandArg
+from nonebot.params import ArgPlainText, CommandArg
 from src.utils import Utils
 
 utils = Utils()
@@ -8,6 +8,8 @@ utils = Utils()
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
 gate_material = on_command("gate_material", aliases = {"升级材料", "msg"}, priority = 5)
 blueprint_obt = on_command("mysekai_blueprint", aliases = {"蓝图获取情况", "msbp"}, priority = 5)
+sub_material = on_command("sub_material", aliases = {"查询订阅", "msub"}, priority = 5)
+sub_bond = on_command("sub_bond", aliases = {"订阅", "subscribe"}, priority = 5)
 ms_info = on_command("ms_info", aliases = {"ms信息", "msi"}, priority = 5)
 update = on_command("update", aliases = {"更新ms数据"}, priority = 5)
 card_info = on_command("card_info", aliases = {"个人图鉴"}, priority = 5)
@@ -95,6 +97,38 @@ async def blueprint_obt_handle(bot: Bot, event: GroupMessageEvent, args: Message
         else:
             messages = messages + str(blueprint) + ":" + str(name) + "\n"
     await blueprint_obt.finish(messages)
+
+@sub_bond.handle()
+async def sub_bond_handle(bot: Bot, event: GroupMessageEvent):
+    messages = "请发送你需要订阅的材料id，以空格分割\n材料id列表如下图\n"
+    messages = messages + "[CQ:image,file=file:///home/ubuntu/bot/rin/rin/plugins/gate_helper/userdata/material_id.png]"
+    await sub_material.send_group_msg(group_id = event.group_id, message = messages)
+
+@sub_bond.got("subs")
+async def sub_bond_got_handle(bot: Bot, event: GroupMessageEvent, subs: str = ArgPlainText("subs")):
+    user_id = str(event.user_id)
+
+    sub_list = list(map(int, subs.split()))
+    utils.bond_sub(user_id, sub_list)
+
+@sub_material.handle()
+async def sub_material_handle(bot: Bot, event: GroupMessageEvent):
+    user_id = str(event.user_id)
+    group_id = str(event.group_id)
+
+    try:
+        utils.get_user_data(user_id)
+    except Exception as e:
+        await sub_material.finish(e.message)
+    
+    user_info = await bot.get_group_member_info(group_id=group_id, user_id=int(user_id))
+    user_name = user_info.get("card") or user_info.get("nickname")
+    harvest = utils.get_harvest_info(user_id, user_name)
+
+    messages = ""
+    for k, v in harvest.items():
+        messages = messages + str(k) + ":" + str(v) + "\n"
+    await sub_material.finish(messages)
 
 @ms_info.handle()
 async def ms_info_handle(bot: Bot, event: GroupMessageEvent):
