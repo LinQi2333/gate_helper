@@ -2,10 +2,13 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, Message, GroupMessageEvent
 from nonebot.params import ArgPlainText, CommandArg
 from src.utils import Utils
+from src.cn_module import CNModule
 
 utils = Utils()
 
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
+cnbond = on_command("cnbond", aliases = {"cn绑定"}, priority = 5)
+cnms = on_command("cnms", aliases = {"cnmsa"}, priority = 5)
 gate_material = on_command("gate_material", aliases = {"升级材料", "msg"}, priority = 5)
 blueprint_obt = on_command("mysekai_blueprint", aliases = {"蓝图获取情况", "msbp"}, priority = 5)
 sub_material = on_command("sub_material", aliases = {"查询订阅", "msub"}, priority = 5)
@@ -20,6 +23,29 @@ async def bond_handle(bot: Bot, event: GroupMessageEvent, args: Message = Comman
     qq = str(event.user_id)
     utils.bond_user(qq, uid)
     await bond.finish("绑定成功！")
+
+@cnbond.handle()
+async def cnbond_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
+    uid = args.extract_plain_text()
+    qq = str(event.user_id)
+    CNModule.bond_user(qq, uid)
+    await cnbond.finish("cn绑定成功！")
+
+@cnms.handle()
+async def cnms_handle(bot: Bot, event: GroupMessageEvent):
+    user_id = str(event.user_id)
+    group_id = str(event.group_id)
+    try:
+        utils.get_user_data(user_id)
+    except Exception as e:
+        await cnms.finish(e.message)
+    
+    material = CNModule.get_harvest_info(user_id, group_id)
+    messages = ""
+    for item in material:
+        for k, v in item.items():
+            messages = messages + str(k) + ":" + str(v) + "\n"
+    await cnms.finish(messages)
 
 @gate_material.handle()
 async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
