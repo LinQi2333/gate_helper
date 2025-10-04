@@ -85,9 +85,9 @@ class CNModule:
         with open(self.material_path, "r", encoding = "utf-8") as f:
             material_map = json.load(f)
         
-        update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
-        now_time = int(datetime.now().timestamp())
-        harvest_info.update({"更新时间": update_time})
+        # update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
+        # now_time = int(datetime.now().timestamp())
+        # harvest_info.update({"更新时间": update_time})
         
         # if now_time - int(userdata["upload_time"]) > 86400:
         #     harvest_info.update({"数据过期": "请重新上传数据"})
