@@ -49,7 +49,7 @@ class CNModule:
         
         json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
 
-        if json_path.exists():
+        if not json_path.exists():
             raise FileDownloadError("未找到用户数据")
     
     def data_translate(self, data: dict) -> dict:

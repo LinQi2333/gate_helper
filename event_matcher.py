@@ -41,7 +41,9 @@ async def cnms_handle(bot: Bot, event: GroupMessageEvent):
     except Exception as e:
         await cnms.finish(e.message)
     
-    material = cnmodule.get_harvest_info(user_id, group_id)
+    user_info = await bot.get_group_member_info(group_id=group_id, user_id=int(user_id))
+    user_name = user_info.get("card") or user_info.get("nickname")
+    material = cnmodule.get_harvest_info(user_id, user_name)
     messages = ""
     for item in material:
         for k, v in item.items():
