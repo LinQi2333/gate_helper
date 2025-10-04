@@ -5,6 +5,7 @@ from src.utils import Utils
 from src.cn_module import CNModule
 
 utils = Utils()
+cnmodule = CNModule()
 
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
 cnbond = on_command("cnbond", aliases = {"cn绑定"}, priority = 5)
@@ -20,15 +21,15 @@ card_info = on_command("card_info", aliases = {"个人图鉴"}, priority = 5)
 @bond.handle()
 async def bond_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
     uid = args.extract_plain_text()
-    qq = str(event.user_id)
-    utils.bond_user(qq, uid)
+    user_id = str(event.user_id)
+    utils.bond_user(user_id, uid)
     await bond.finish("绑定成功！")
 
 @cnbond.handle()
 async def cnbond_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
     uid = args.extract_plain_text()
-    qq = str(event.user_id)
-    CNModule.bond_user(qq, uid)
+    user_id = str(event.user_id)
+    cnmodule.bond_user(user_id, uid)
     await cnbond.finish("cn绑定成功！")
 
 @cnms.handle()
@@ -40,7 +41,7 @@ async def cnms_handle(bot: Bot, event: GroupMessageEvent):
     except Exception as e:
         await cnms.finish(e.message)
     
-    material = CNModule.get_harvest_info(user_id, group_id)
+    material = cnmodule.get_harvest_info(user_id, group_id)
     messages = ""
     for item in material:
         for k, v in item.items():

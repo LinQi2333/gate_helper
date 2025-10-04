@@ -114,12 +114,17 @@ class CNModule:
             material_info.update({f"图{map_id - 4}：{map_name}": ""})
             material_dict = {}
             for fixture in item["userMysekaiSiteHarvestResourceDrops"]:
-                material_dict[fixture["resourceId"]] += fixture["quantity"]
+                rid = fixture["resourceId"]
+                qty = fixture["quantity"]
+
+                material_dict[rid] = material_dict.get(rid, 0) + qty
+                # material_dict[fixture["resourceId"]] += fixture["quantity"]
             
             for k, v in material_dict.items():
                 for item in material_map:
                     if k == item["id"] and (k < 35 or k > 60):
                         if v != 0:
                             material_info.update({item["name"]: v})
+            result.append(material_info)
                                         
         return result
