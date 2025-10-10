@@ -47,7 +47,8 @@ class CNModule:
         if not found:
             raise UserError("未绑定用户，使用指令[！绑定 uid]进行绑定")
         
-        json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
+        # json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
+        json_path = Path("/home/ubuntu/bot/json_uploader") / "uploads" / f"{user_id}_ms.json"
 
         if not json_path.exists():
             raise FileDownloadError("未找到用户数据")
@@ -78,16 +79,17 @@ class CNModule:
         result = []
         harvest_info = {"用户": user_name + "(" + user_id + ")"}
 
-        json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
+        # json_path = self.base_path / "data" / f"user_{user_id}_ms.json"
+        json_path = Path("/home/ubuntu/bot/json_uploader") / "uploads" / f"{user_id}_ms.json"
         with open(json_path, "r", encoding = "utf-8") as f:
             userdata = json.load(f)
         
         with open(self.material_path, "r", encoding = "utf-8") as f:
             material_map = json.load(f)
         
-        # update_time = datetime.fromtimestamp(int(userdata["upload_time"]))
+        update_time = datetime.fromtimestamp(int(userdata["updatedResources"]["now"])/1000).strftime("%Y-%m-%d %H:%M:%S")
         # now_time = int(datetime.now().timestamp())
-        # harvest_info.update({"更新时间": update_time})
+        harvest_info.update({"更新时间": update_time})
         
         # if now_time - int(userdata["upload_time"]) > 86400:
         #     harvest_info.update({"数据过期": "请重新上传数据"})
