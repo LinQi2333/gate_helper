@@ -1,5 +1,5 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot, Message, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, Message, GroupMessageEvent, MessageSegment
 from nonebot.params import ArgPlainText, CommandArg
 from src.utils import Utils
 from src.cn_module import CNModule
@@ -9,7 +9,8 @@ cnmodule = CNModule()
 
 bond = on_command("bond", aliases = {"绑定"}, priority = 5)
 cnbond = on_command("cnbond", aliases = {"cn绑定"}, priority = 5)
-cnms = on_command("cnms", aliases = {"cnmsa"}, priority = 5)
+cnms = on_command("cnms", priority = 5)
+cnmsa = on_command("cnmsa", priority = 5)
 gate_material = on_command("gate_material", aliases = {"升级材料", "msg"}, priority = 5)
 blueprint_obt = on_command("mysekai_blueprint", aliases = {"蓝图获取情况", "msbp"}, priority = 5)
 sub_material = on_command("sub_material", aliases = {"查询订阅", "msub"}, priority = 5)
@@ -37,7 +38,7 @@ async def cnms_handle(bot: Bot, event: GroupMessageEvent):
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     try:
-        utils.get_user_data(user_id)
+        cnmodule.get_user_data(user_id)
     except Exception as e:
         await cnms.finish(e.message)
     
@@ -49,6 +50,32 @@ async def cnms_handle(bot: Bot, event: GroupMessageEvent):
         for k, v in item.items():
             messages = messages + str(k) + ":" + str(v) + "\n"
     await cnms.finish(messages)
+
+@cnmsa.handle()
+async def cnmsa_handle(bot: Bot, event: GroupMessageEvent):
+    user_id = str(event.user_id)
+    if user_id == "794922335":
+        user_id = "2376841147"
+    group_id = str(event.group_id)
+    try:
+        cnmodule.get_user_data(user_id)
+    except Exception as e:
+        await cnmsa.finish(e.message)
+    
+    cnmodule.msa(user_id)
+
+    forward_msg = [
+        MessageSegment(
+            type="node",
+            data={
+                "user_id": user_id,
+                "content": f"[CQ:image,file=file:///home/ubuntu/bot/rin/rin/plugins/gate_helper/output/{user_id}_map_{id}.png]"
+            }
+        )
+        for id in range(5, 9)
+    ]
+
+    await bot.send_group_forward_msg(group_id=group_id, messages=forward_msg)
 
 @gate_material.handle()
 async def gate_material_handle(bot: Bot, event: GroupMessageEvent, args: Message = CommandArg()):
