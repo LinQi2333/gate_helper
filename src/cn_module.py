@@ -137,7 +137,7 @@ class CNModule:
     def msa(self, user_id: str) -> str:
         visualizer = MapVisualizer(
         id=user_id,
-        json_file=f"{user_id}_ms.json",  # 原始 API JSON 文件
+        json_file=f"/home/ubuntu/bot/json_uploader/uploads/{user_id}_ms.json",  # 原始 API JSON 文件
         base_folder="/home/ubuntu/bot/rin/rin/plugins/gate_helper/",                # 包含img文件夹的基础目录
         icon_folder="/home/ubuntu/bot/rin/rin/plugins/gate_helper/icon/Texture2D",          # 图标文件夹
         output_folder="/home/ubuntu/bot/rin/rin/plugins/gate_helper/output",                # 输出文件夹
